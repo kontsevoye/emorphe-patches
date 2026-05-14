@@ -1,3 +1,10 @@
+# [1.0.0-dev.7](https://github.com/kontsevoye/emorphe-patches/compare/v1.0.0-dev.6...v1.0.0-dev.7) (2026-05-14)
+
+
+### Bug Fixes
+
+* open editable EMorphe settings ([1bcc42f](https://github.com/kontsevoye/emorphe-patches/commit/1bcc42fb7c09ceac0ec7a9831c2b2e45a1353197))
+
 # [1.0.0-dev.6](https://github.com/kontsevoye/emorphe-patches/compare/v1.0.0-dev.5...v1.0.0-dev.6) (2026-05-14)
 
 
