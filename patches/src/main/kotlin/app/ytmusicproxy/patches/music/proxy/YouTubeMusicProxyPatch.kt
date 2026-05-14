@@ -12,8 +12,6 @@ import app.morphe.patcher.string
 import com.android.tools.smali.dexlib2.AccessFlags
 
 private const val EXTENSION_CLASS = "Lapp/ytmusicproxy/extension/YouTubeMusicProxyPatch;"
-private const val EMORPHE_SETTINGS_FRAGMENT = "app.ytmusicproxy.extension.settings.EMorphePreferenceFragment"
-private const val EMORPHE_PROXY_SETTINGS_FRAGMENT = "app.ytmusicproxy.extension.settings.EMorpheProxyPreferenceFragment"
 private const val EMORPHE_SETTINGS_KEY = "settings_header_emorphe"
 private const val EMORPHE_PROXY_SETTINGS_KEY = "emorphe_settings_proxy"
 private const val MORPHE_SETTINGS_TITLE = "@string/morphe_settings_title"
@@ -86,40 +84,8 @@ private object MediaFetchProxyResolverFingerprint : Fingerprint(
     ),
 )
 
-private object SettingsCompatActivityFragmentAllowlistFingerprint : Fingerprint(
-    definingClass = "Lcom/google/android/apps/youtube/music/settings/SettingsCompatActivity;",
-    name = "t",
-    accessFlags = listOf(AccessFlags.PROTECTED, AccessFlags.FINAL),
-    returnType = "Z",
-    parameters = listOf("Ljava/lang/String;"),
-)
-
 private val emorpheSettingsResourcePatch = resourcePatch {
     execute {
-        get("res/xml/emorphe_settings.xml").writeText(
-            """
-                <?xml version="1.0" encoding="utf-8"?>
-                <PreferenceScreen
-                  xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
-                    <com.google.android.apps.youtube.music.settings.preference.SelectablePreference android:persistent="false" android:title="Proxy" android:key="$EMORPHE_PROXY_SETTINGS_KEY" android:fragment="$EMORPHE_PROXY_SETTINGS_FRAGMENT" android:summary="HTTP proxy used by YouTube Music" app:allowDividerAbove="false" app:allowDividerBelow="false" />
-                </PreferenceScreen>
-            """.trimIndent(),
-        )
-
-        get("res/xml/emorphe_proxy_settings.xml").writeText(
-            """
-                <?xml version="1.0" encoding="utf-8"?>
-                <PreferenceScreen
-                  xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
-                    <com.google.android.apps.youtube.music.ui.preference.SwitchCompatPreference android:persistent="true" android:title="Enable proxy" android:key="emorphe_proxy_enabled" android:summaryOn="Proxy is enabled" android:summaryOff="Proxy is disabled" android:defaultValue="true" />
-                    <com.google.android.apps.youtube.music.ui.preference.CustomEditTextPreference android:persistent="true" android:title="Proxy host" android:dialogTitle="Proxy host" android:key="emorphe_proxy_host" android:defaultValue="127.0.0.1" android:dependency="emorphe_proxy_enabled" android:singleLine="true" app:useSimpleSummaryProvider="true" />
-                    <com.google.android.apps.youtube.music.ui.preference.CustomEditTextPreference android:persistent="true" android:title="Proxy port" android:dialogTitle="Proxy port" android:key="emorphe_proxy_port" android:defaultValue="1081" android:dependency="emorphe_proxy_enabled" android:inputType="number" android:singleLine="true" app:useSimpleSummaryProvider="true" />
-                    <com.google.android.apps.youtube.music.ui.preference.CustomEditTextPreference android:persistent="true" android:title="Proxy username" android:dialogTitle="Proxy username" android:key="emorphe_proxy_username" android:dependency="emorphe_proxy_enabled" android:singleLine="true" app:useSimpleSummaryProvider="true" />
-                    <com.google.android.apps.youtube.music.ui.preference.CustomEditTextPreference android:persistent="true" android:title="Proxy password" android:dialogTitle="Proxy password" android:key="emorphe_proxy_password" android:summary="Optional proxy authentication password" android:dependency="emorphe_proxy_enabled" android:inputType="textPassword" android:singleLine="true" />
-                </PreferenceScreen>
-            """.trimIndent(),
-        )
-
         document("res/xml/settings_headers.xml").use { document ->
             val root = document.documentElement
             val existing = root.getElementsByTagName("*")
@@ -130,15 +96,77 @@ private val emorpheSettingsResourcePatch = resourcePatch {
                 }
             }
 
-            val preference = document.createElement(
-                "com.google.android.apps.youtube.music.settings.preference.SelectablePreference"
-            ).apply {
+            val preference = document.createElement("PreferenceScreen").apply {
                 setAttribute("android:persistent", "false")
                 setAttribute("android:title", "EMorphe")
                 setAttribute("android:key", EMORPHE_SETTINGS_KEY)
-                setAttribute("android:fragment", EMORPHE_SETTINGS_FRAGMENT)
                 setAttribute("app:allowDividerAbove", "false")
                 setAttribute("app:allowDividerBelow", "false")
+
+                appendChild(document.createElement("PreferenceScreen").apply {
+                    setAttribute("android:persistent", "false")
+                    setAttribute("android:title", "Proxy")
+                    setAttribute("android:key", EMORPHE_PROXY_SETTINGS_KEY)
+                    setAttribute("android:summary", "HTTP proxy used by YouTube Music")
+                    setAttribute("app:allowDividerAbove", "false")
+                    setAttribute("app:allowDividerBelow", "false")
+
+                    appendChild(document.createElement(
+                        "com.google.android.apps.youtube.music.ui.preference.SwitchCompatPreference"
+                    ).apply {
+                        setAttribute("android:persistent", "true")
+                        setAttribute("android:title", "Enable proxy")
+                        setAttribute("android:key", "emorphe_proxy_enabled")
+                        setAttribute("android:summaryOn", "Proxy is enabled")
+                        setAttribute("android:summaryOff", "Proxy is disabled")
+                        setAttribute("android:defaultValue", "true")
+                    })
+                    appendChild(document.createElement(
+                        "app.ytmusicproxy.extension.settings.ProxyTextPreference"
+                    ).apply {
+                        setAttribute("android:persistent", "true")
+                        setAttribute("android:title", "Proxy host")
+                        setAttribute("android:dialogTitle", "Proxy host")
+                        setAttribute("android:key", "emorphe_proxy_host")
+                        setAttribute("android:defaultValue", "127.0.0.1")
+                        setAttribute("android:dependency", "emorphe_proxy_enabled")
+                        setAttribute("android:singleLine", "true")
+                    })
+                    appendChild(document.createElement(
+                        "app.ytmusicproxy.extension.settings.ProxyTextPreference"
+                    ).apply {
+                        setAttribute("android:persistent", "true")
+                        setAttribute("android:title", "Proxy port")
+                        setAttribute("android:dialogTitle", "Proxy port")
+                        setAttribute("android:key", "emorphe_proxy_port")
+                        setAttribute("android:defaultValue", "1081")
+                        setAttribute("android:dependency", "emorphe_proxy_enabled")
+                        setAttribute("android:inputType", "number")
+                        setAttribute("android:singleLine", "true")
+                    })
+                    appendChild(document.createElement(
+                        "app.ytmusicproxy.extension.settings.ProxyTextPreference"
+                    ).apply {
+                        setAttribute("android:persistent", "true")
+                        setAttribute("android:title", "Proxy username")
+                        setAttribute("android:dialogTitle", "Proxy username")
+                        setAttribute("android:key", "emorphe_proxy_username")
+                        setAttribute("android:dependency", "emorphe_proxy_enabled")
+                        setAttribute("android:singleLine", "true")
+                    })
+                    appendChild(document.createElement(
+                        "app.ytmusicproxy.extension.settings.ProxyTextPreference"
+                    ).apply {
+                        setAttribute("android:persistent", "true")
+                        setAttribute("android:title", "Proxy password")
+                        setAttribute("android:dialogTitle", "Proxy password")
+                        setAttribute("android:key", "emorphe_proxy_password")
+                        setAttribute("android:summary", "Optional proxy authentication password")
+                        setAttribute("android:dependency", "emorphe_proxy_enabled")
+                        setAttribute("android:inputType", "textPassword")
+                        setAttribute("android:singleLine", "true")
+                    })
+                })
             }
 
             val morpheNode = (0 until existing.length)
@@ -203,28 +231,6 @@ val youTubeMusicProxyPatch = bytecodePatch(
             """
                 invoke-static { p4 }, $EXTENSION_CLASS->enableMediaProxyResolver(Z)Z
                 move-result p4
-            """,
-        )
-
-        SettingsCompatActivityFragmentAllowlistFingerprint.method.addInstructions(
-            0,
-            """
-                const-string v0, "$EMORPHE_SETTINGS_FRAGMENT"
-                invoke-virtual { v0, p1 }, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
-                move-result v0
-                if-nez v0, :emorphe_settings_allowed
-
-                const-string v0, "$EMORPHE_PROXY_SETTINGS_FRAGMENT"
-                invoke-virtual { v0, p1 }, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
-                move-result v0
-                if-eqz v0, :emorphe_settings_allowlist_continue
-
-                :emorphe_settings_allowed
-                const/4 p1, 0x1
-                return p1
-
-                :emorphe_settings_allowlist_continue
-                nop
             """,
         )
     }
