@@ -1,30 +1,31 @@
-# 👋 Contribution guidelines
+# Contribution Guidelines
 
-This document describes how to contribute to Morphe Patches template.
+This repository contains custom patches for use with Morphe.
 
-## 📖 Resources to help you get started
+## Resources
 
-* [Issues](https://github.com/Morpheapp/morphe-patches-template/issues) are where we keep track of bugs and feature requests
+- Issues: https://github.com/kontsevoye/emorphe-patches/issues
+- Pull requests: https://github.com/kontsevoye/emorphe-patches/pulls
 
-## 🙏 Submitting a feature request
+## Submitting A Feature Request
 
-Features can be requested by opening an issue using the
-[Feature request issue template](https://github.com/MorpheApp/morphe-patches-template/issues/new?labels=Feature+request&template=feature_request.yml&title=feat%3A+).
+Open a feature request issue:
 
-## 🐞 Submitting a bug report
+https://github.com/kontsevoye/emorphe-patches/issues/new?labels=Feature+request&template=feature_request.yml&title=feat%3A+
 
-If you encounter a bug while using Morphe Patches template, open an issue using the
-[Bug report issue template](https://github.com/MorpheApp/morphe-patches-template/issues/new?labels=Bug+report&template=bug_report.yml&title=bug%3A+).
+## Submitting A Bug Report
 
-## 📝 How to contribute
+Open a bug report issue:
 
-1. Before contributing, it is recommended to open an issue to discuss your change
-with the maintainers of Morphe Patches template
-2. Development happens on the `dev` branch. Fork the repository and create your branch from `dev`
-3. Commit your changes
-4. Submit a pull request to the `dev` branch of the repository and reference issues
-that your pull request closes in the description of your pull request
-5. Our team will review your pull request and provide feedback. Once your pull request is approved,
-it will be merged into the `dev` branch and will be included in the next release of Morphe Patches template
+https://github.com/kontsevoye/emorphe-patches/issues/new?labels=Bug+report&template=bug_report.yml&title=bug%3A+
 
-❤️ Thank you for considering contributing to Morphe Patches template
+## Development Flow
+
+1. Open or reference an issue when the change needs discussion.
+2. Create feature branches from `dev`.
+3. Use semantic commit messages.
+4. Open pull requests into `dev`.
+5. Merge `dev` into `main` when ready for release.
+
+The `dev` and `main` branches are release branches. Do not force-push release
+commits created by semantic-release.
