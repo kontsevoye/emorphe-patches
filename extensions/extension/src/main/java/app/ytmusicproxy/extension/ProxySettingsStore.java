@@ -4,7 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 public final class ProxySettingsStore {
-    private static final String YOUTUBE_SETTINGS_FILE = "youtube";
+    public static final String PREFERENCES_FILE = "youtube";
 
     public static final String KEY_ENABLED = "emorphe_proxy_enabled";
     public static final String KEY_HOST = "emorphe_proxy_host";
@@ -66,6 +66,6 @@ public final class ProxySettingsStore {
     }
 
     public static SharedPreferences preferences(Context context) {
-        return context.getApplicationContext().getSharedPreferences(YOUTUBE_SETTINGS_FILE, Context.MODE_PRIVATE);
+        return context.getApplicationContext().getSharedPreferences(PREFERENCES_FILE, Context.MODE_PRIVATE);
     }
 }
