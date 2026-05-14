@@ -2,9 +2,10 @@ package app.ytmusicproxy.extension;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
 
 public final class ProxySettingsStore {
+    private static final String YOUTUBE_SETTINGS_FILE = "youtube";
+
     public static final String KEY_ENABLED = "emorphe_proxy_enabled";
     public static final String KEY_HOST = "emorphe_proxy_host";
     public static final String KEY_PORT = "emorphe_proxy_port";
@@ -65,6 +66,6 @@ public final class ProxySettingsStore {
     }
 
     public static SharedPreferences preferences(Context context) {
-        return PreferenceManager.getDefaultSharedPreferences(context.getApplicationContext());
+        return context.getApplicationContext().getSharedPreferences(YOUTUBE_SETTINGS_FILE, Context.MODE_PRIVATE);
     }
 }

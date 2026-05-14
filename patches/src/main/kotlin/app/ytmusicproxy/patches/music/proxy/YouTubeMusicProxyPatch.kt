@@ -121,9 +121,7 @@ private val emorpheSettingsResourcePatch = resourcePatch {
                         setAttribute("android:summaryOff", "Proxy is disabled")
                         setAttribute("android:defaultValue", "true")
                     })
-                    appendChild(document.createElement(
-                        "com.google.android.apps.youtube.music.ui.preference.CustomEditTextPreference"
-                    ).apply {
+                    appendChild(document.createElement("androidx.preference.EditTextPreference").apply {
                         setAttribute("android:persistent", "true")
                         setAttribute("android:title", "Proxy host")
                         setAttribute("android:dialogTitle", "Proxy host")
@@ -133,9 +131,7 @@ private val emorpheSettingsResourcePatch = resourcePatch {
                         setAttribute("android:singleLine", "true")
                         setAttribute("app:useSimpleSummaryProvider", "true")
                     })
-                    appendChild(document.createElement(
-                        "com.google.android.apps.youtube.music.ui.preference.CustomEditTextPreference"
-                    ).apply {
+                    appendChild(document.createElement("androidx.preference.EditTextPreference").apply {
                         setAttribute("android:persistent", "true")
                         setAttribute("android:title", "Proxy port")
                         setAttribute("android:dialogTitle", "Proxy port")
@@ -146,9 +142,7 @@ private val emorpheSettingsResourcePatch = resourcePatch {
                         setAttribute("android:singleLine", "true")
                         setAttribute("app:useSimpleSummaryProvider", "true")
                     })
-                    appendChild(document.createElement(
-                        "com.google.android.apps.youtube.music.ui.preference.CustomEditTextPreference"
-                    ).apply {
+                    appendChild(document.createElement("androidx.preference.EditTextPreference").apply {
                         setAttribute("android:persistent", "true")
                         setAttribute("android:title", "Proxy username")
                         setAttribute("android:dialogTitle", "Proxy username")
@@ -157,9 +151,7 @@ private val emorpheSettingsResourcePatch = resourcePatch {
                         setAttribute("android:singleLine", "true")
                         setAttribute("app:useSimpleSummaryProvider", "true")
                     })
-                    appendChild(document.createElement(
-                        "com.google.android.apps.youtube.music.ui.preference.CustomEditTextPreference"
-                    ).apply {
+                    appendChild(document.createElement("androidx.preference.EditTextPreference").apply {
                         setAttribute("android:persistent", "true")
                         setAttribute("android:title", "Proxy password")
                         setAttribute("android:dialogTitle", "Proxy password")
