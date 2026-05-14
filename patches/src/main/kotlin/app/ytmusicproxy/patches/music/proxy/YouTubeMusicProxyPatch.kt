@@ -81,7 +81,6 @@ val youTubeMusicProxyPatch = bytecodePatch(
     val proxyHost by stringOption(
         key = "proxyHost",
         default = "127.0.0.1",
-        values = mapOf("Localhost" to "127.0.0.1"),
         title = "Proxy host",
         description = "Proxy host or IP address.",
         required = true,
@@ -92,7 +91,6 @@ val youTubeMusicProxyPatch = bytecodePatch(
     val proxyPort by stringOption(
         key = "proxyPort",
         default = "1080",
-        values = mapOf("1080" to "1080"),
         title = "Proxy port",
         description = "Proxy port number.",
         required = true,
