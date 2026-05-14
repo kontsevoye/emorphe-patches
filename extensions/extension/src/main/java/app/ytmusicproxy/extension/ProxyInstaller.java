@@ -9,10 +9,24 @@ import java.net.ProxySelector;
 import java.net.SocketAddress;
 import java.net.URI;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public final class ProxyInstaller {
+    private static volatile Trace trace;
+
     private ProxyInstaller() {
+    }
+
+    public interface Trace {
+        void onSelect(URI uri, Proxy proxy);
+
+        void onConnectFailed(URI uri, SocketAddress socketAddress, IOException exception);
+    }
+
+    public static void setTrace(Trace trace) {
+        ProxyInstaller.trace = trace;
     }
 
     public static boolean apply(ProxySettings settings) {
@@ -32,6 +46,14 @@ public final class ProxyInstaller {
         applySystemProperties(type, host, port);
         applyAuthenticator(settings.getUsername(), settings.getPassword());
         return true;
+    }
+
+    public static String describeState() {
+        ProxySelector selector = ProxySelector.getDefault();
+        return "selector=" + (selector == null ? "null" : selector.getClass().getName())
+                + ", http=" + describeHostPort("http.proxyHost", "http.proxyPort")
+                + ", https=" + describeHostPort("https.proxyHost", "https.proxyPort")
+                + ", socks=" + describeHostPort("socksProxyHost", "socksProxyPort");
     }
 
     private static void applySystemProperties(ProxyType type, String host, int port) {
@@ -55,6 +77,16 @@ public final class ProxyInstaller {
         System.clearProperty("https.proxyPort");
         System.clearProperty("socksProxyHost");
         System.clearProperty("socksProxyPort");
+    }
+
+    private static String describeHostPort(String hostProperty, String portProperty) {
+        String host = System.getProperty(hostProperty);
+        String port = System.getProperty(portProperty);
+        if (host == null && port == null) {
+            return "unset";
+        }
+
+        return nullToEmpty(host) + ":" + nullToEmpty(port);
     }
 
     private static void applyAuthenticator(String username, String password) {
@@ -99,6 +131,7 @@ public final class ProxyInstaller {
 
     private static final class FixedProxySelector extends ProxySelector {
         private final List<Proxy> proxies;
+        private final Set<String> seenUris = Collections.synchronizedSet(new HashSet<String>());
 
         private FixedProxySelector(Proxy proxy) {
             proxies = Collections.singletonList(proxy);
@@ -106,11 +139,24 @@ public final class ProxyInstaller {
 
         @Override
         public List<Proxy> select(URI uri) {
+            Trace currentTrace = trace;
+            if (currentTrace != null && uri != null && seenUris.add(describeUri(uri))) {
+                currentTrace.onSelect(uri, proxies.get(0));
+            }
+
             return proxies;
         }
 
         @Override
         public void connectFailed(URI uri, SocketAddress socketAddress, IOException exception) {
+            Trace currentTrace = trace;
+            if (currentTrace != null) {
+                currentTrace.onConnectFailed(uri, socketAddress, exception);
+            }
+        }
+
+        private static String describeUri(URI uri) {
+            return nullToEmpty(uri.getScheme()) + "://" + nullToEmpty(uri.getHost()) + ":" + uri.getPort();
         }
     }
 }
