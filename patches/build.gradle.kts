@@ -1,13 +1,13 @@
-group = "app.template"
+group = "app.kontsevoye.emorphe"
 
 patches {
     about {
-        name = "UserXYZ Patches"
-        description = "Patches for apps I like"
-        source = "git@github.com:UserXYZ/morphe-patches.git"
-        author = "Awesome dev"
+        name = "emorphe-patches"
+        description = "Custom patches for use with Morphe"
+        source = "https://github.com/kontsevoye/emorphe-patches"
+        author = "Evgenii Kontsevoi"
         contact = "na"
-        website = "na"
+        website = "https://github.com/kontsevoye/emorphe-patches"
         license = "GPLv3"
     }
 }
