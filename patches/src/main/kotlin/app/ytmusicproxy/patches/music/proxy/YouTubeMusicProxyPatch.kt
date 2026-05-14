@@ -54,29 +54,46 @@ private object ExperimentalCronetEngineBuilderFingerprint : Fingerprint(
     parameters = listOf("Z"),
 )
 
+private object CronetEngineBuilderBuildFingerprint : Fingerprint(
+    definingClass = $$"/CronetEngine$Builder;",
+    name = "build",
+    accessFlags = listOf(AccessFlags.PUBLIC),
+    returnType = "L",
+    parameters = listOf(),
+)
+
+private object ExperimentalCronetEngineBuilderBuildFingerprint : Fingerprint(
+    definingClass = $$"/ExperimentalCronetEngine$Builder;",
+    name = "build",
+    accessFlags = listOf(AccessFlags.PUBLIC),
+    returnType = "L",
+    parameters = listOf(),
+)
+
+private object MediaFetchProxyResolverFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.CONSTRUCTOR),
+    returnType = "V",
+    parameters = listOf(
+        "Landroid/content/Context;",
+        "Lcom/google/android/libraries/youtube/media/interfaces/MediaFetchController;",
+        "L",
+        "Z",
+    ),
+    strings = listOf(
+        "android.intent.action.PROXY_CHANGE",
+        "Platypus Proxy Setting Resolution error",
+    ),
+)
+
 @Suppress("unused")
 val youTubeMusicProxyPatch = bytecodePatch(
     name = "YouTube Music proxy",
-    description = "Routes YouTube Music traffic through an app-level HTTP or SOCKS proxy.",
+    description = "Routes YouTube Music traffic through an app-level HTTP proxy.",
     default = false,
 ) {
     compatibleWith(youtubeMusicCompatibility)
 
     extendWith("extensions/extension.mpe")
-
-    val proxyType by stringOption(
-        key = "proxyType",
-        default = "SOCKS",
-        values = mapOf(
-            "HTTP" to "HTTP",
-            "SOCKS" to "SOCKS",
-        ),
-        title = "Proxy type",
-        description = "Proxy protocol to use.",
-        required = true,
-    ) {
-        it == "HTTP" || it == "SOCKS"
-    }
 
     val proxyHost by stringOption(
         key = "proxyHost",
@@ -90,7 +107,7 @@ val youTubeMusicProxyPatch = bytecodePatch(
 
     val proxyPort by stringOption(
         key = "proxyPort",
-        default = "1080",
+        default = "1081",
         title = "Proxy port",
         description = "Proxy port number.",
         required = true,
@@ -140,17 +157,16 @@ val youTubeMusicProxyPatch = bytecodePatch(
                     AccessFlags.PRIVATE.value or AccessFlags.STATIC.value,
                     null,
                     null,
-                    MutableMethodImplementation(5),
+                    MutableMethodImplementation(4),
                 ).toMutable().apply {
                     addInstructions(
                         0,
                         """
-                            const-string v0, "${proxyType.smaliString()}"
-                            const-string v1, "${proxyHost.smaliString()}"
-                            const-string v2, "${proxyPort.smaliString()}"
-                            const-string v3, "${proxyUsername.smaliString()}"
-                            const-string v4, "${proxyPassword.smaliString()}"
-                            invoke-static { v0, v1, v2, v3, v4 }, $EXTENSION_CLASS->apply(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+                            const-string v0, "${proxyHost.smaliString()}"
+                            const-string v1, "${proxyPort.smaliString()}"
+                            const-string v2, "${proxyUsername.smaliString()}"
+                            const-string v3, "${proxyPassword.smaliString()}"
+                            invoke-static { v0, v1, v2, v3 }, $EXTENSION_CLASS->apply(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
                             return-void
                         """
                     )
@@ -175,6 +191,24 @@ val youTubeMusicProxyPatch = bytecodePatch(
                 """,
             )
         }
+
+        arrayOf(
+            CronetEngineBuilderBuildFingerprint,
+            ExperimentalCronetEngineBuilderBuildFingerprint,
+        ).forEach { fingerprint ->
+            fingerprint.method.addInstruction(
+                0,
+                "invoke-static { p0 }, $EXTENSION_CLASS->applyCronetProxyOptions(Ljava/lang/Object;)V",
+            )
+        }
+
+        MediaFetchProxyResolverFingerprint.method.addInstructions(
+            0,
+            """
+                invoke-static { p4 }, $EXTENSION_CLASS->enableMediaProxyResolver(Z)Z
+                move-result p4
+            """,
+        )
     }
 }
 

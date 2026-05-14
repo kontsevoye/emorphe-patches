@@ -11,8 +11,8 @@ public class ProxyInstallerTest {
     public static void main(String[] args) throws Exception {
         testInvalidPortLeavesProxyStateUnchanged();
         testHttpProxySetsHttpAndHttpsProperties();
-        testSocksProxySetsSocksProperties();
         testCredentialsInstallProxyAuthenticator();
+        testSnapshotCapturesAppliedProxy();
         System.out.println("ProxyInstallerTest PASS");
     }
 
@@ -20,7 +20,7 @@ public class ProxyInstallerTest {
         resetProxyState();
         ProxySelector originalSelector = ProxySelector.getDefault();
 
-        ProxyInstaller.apply(settings(ProxyType.HTTP, "127.0.0.1", "70000", "", ""));
+        ProxyInstaller.apply(settings("127.0.0.1", "70000", "", ""));
 
         assertSame(originalSelector, ProxySelector.getDefault(), "invalid port should not replace ProxySelector");
         assertNull(System.getProperty("https.proxyHost"), "invalid port should not set https proxy host");
@@ -29,7 +29,7 @@ public class ProxyInstallerTest {
     private static void testHttpProxySetsHttpAndHttpsProperties() throws Exception {
         resetProxyState();
 
-        ProxyInstaller.apply(settings(ProxyType.HTTP, "127.0.0.1", "8080", "", ""));
+        ProxyInstaller.apply(settings("127.0.0.1", "8080", "", ""));
 
         assertEquals("127.0.0.1", System.getProperty("http.proxyHost"), "http host");
         assertEquals("8080", System.getProperty("http.proxyPort"), "http port");
@@ -40,23 +40,10 @@ public class ProxyInstallerTest {
         assertEquals(Proxy.Type.HTTP, proxies.get(0).type(), "proxy selector should return HTTP proxy");
     }
 
-    private static void testSocksProxySetsSocksProperties() throws Exception {
-        resetProxyState();
-
-        ProxyInstaller.apply(settings(ProxyType.SOCKS, "127.0.0.1", "1080", "", ""));
-
-        assertEquals("127.0.0.1", System.getProperty("socksProxyHost"), "socks host");
-        assertEquals("1080", System.getProperty("socksProxyPort"), "socks port");
-        assertNull(System.getProperty("http.proxyHost"), "socks proxy should not set http host");
-
-        List<Proxy> proxies = ProxySelector.getDefault().select(new URI("https://music.youtube.com/"));
-        assertEquals(Proxy.Type.SOCKS, proxies.get(0).type(), "proxy selector should return SOCKS proxy");
-    }
-
     private static void testCredentialsInstallProxyAuthenticator() {
         resetProxyState();
 
-        ProxyInstaller.apply(settings(ProxyType.HTTP, "127.0.0.1", "8080", "alice", "secret"));
+        ProxyInstaller.apply(settings("127.0.0.1", "8080", "alice", "secret"));
 
         PasswordAuthentication authentication = Authenticator.requestPasswordAuthentication(
                 "127.0.0.1",
@@ -73,19 +60,26 @@ public class ProxyInstallerTest {
         assertEquals("secret", new String(authentication.getPassword()), "proxy password");
     }
 
+    private static void testSnapshotCapturesAppliedProxy() {
+        resetProxyState();
+
+        ProxyInstaller.apply(settings("127.0.0.1", "8080", "alice", "secret"));
+
+        ProxyInstaller.Snapshot snapshot = ProxyInstaller.getSnapshot();
+        assertEquals("127.0.0.1", snapshot.getHost(), "snapshot host");
+        assertEquals(8080, snapshot.getPort(), "snapshot port");
+        assertEquals("alice", snapshot.getUsername(), "snapshot username");
+        assertEquals("secret", snapshot.getPassword(), "snapshot password");
+        assertEquals(true, snapshot.hasAuthentication(), "snapshot should capture auth");
+    }
+
     private static ProxySettings settings(
-            ProxyType type,
             String host,
             String port,
             String username,
             String password
     ) {
         return new ProxySettings() {
-            @Override
-            public ProxyType getType() {
-                return type;
-            }
-
             @Override
             public String getHost() {
                 return host;
@@ -113,8 +107,6 @@ public class ProxyInstallerTest {
         System.clearProperty("http.proxyPort");
         System.clearProperty("https.proxyHost");
         System.clearProperty("https.proxyPort");
-        System.clearProperty("socksProxyHost");
-        System.clearProperty("socksProxyPort");
         Authenticator.setDefault(null);
     }
 

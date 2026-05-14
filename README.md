@@ -3,18 +3,6 @@
 Custom patch source for use with Morphe. The repository is intended to host
 small targeted patches that are not part of the upstream source.
 
-## About
-
-Current patches:
-
-- `YouTube Music proxy`
-
-`YouTube Music proxy` injects process-wide HTTP or SOCKS proxy setup into
-YouTube Music startup and disables Cronet QUIC so HTTP/3 does not bypass the
-proxy path.
-
-The patch is intended for YouTube Music `8.47.56`.
-
 ## Patches List
 
 <!-- PATCHES_START EXPANDED -->
@@ -30,7 +18,7 @@ The patch is intended for YouTube Music `8.47.56`.
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [YouTube Music proxy](#youtube-music-proxy) | Routes YouTube Music traffic through an app-level HTTP or SOCKS proxy. | • Proxy type<br>• Proxy host<br>• Proxy port<br>• Proxy username<br>• Proxy password |
+| [YouTube Music proxy](#youtube-music-proxy) | Routes YouTube Music traffic through an app-level HTTP proxy. | • Proxy host<br>• Proxy port<br>• Proxy username<br>• Proxy password |
 
 </details>
 
@@ -50,19 +38,6 @@ Or add the GitHub repository URL manually:
 ```text
 https://github.com/kontsevoye/emorphe-patches
 ```
-
-## Patch Options
-
-`YouTube Music proxy`:
-
-- `proxyType`: `SOCKS` or `HTTP`
-- `proxyHost`: default `127.0.0.1`
-- `proxyPort`: default `1080`
-- `proxyUsername`: optional
-- `proxyPassword`: optional
-
-This version stores proxy values as patch options. Changing proxy settings
-requires repatching the app.
 
 ## Development Flow
 

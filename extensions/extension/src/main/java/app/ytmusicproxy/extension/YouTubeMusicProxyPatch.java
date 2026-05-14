@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.net.Proxy;
 import java.net.SocketAddress;
 import java.net.URI;
+import org.chromium.net.CronetEngine;
 
 @SuppressWarnings("unused")
 public final class YouTubeMusicProxyPatch {
@@ -15,7 +16,6 @@ public final class YouTubeMusicProxyPatch {
     }
 
     public static void apply(
-            String proxyType,
             String proxyHost,
             String proxyPort,
             String proxyUsername,
@@ -35,11 +35,6 @@ public final class YouTubeMusicProxyPatch {
             });
 
             boolean applied = ProxyInstaller.apply(new ProxySettings() {
-                @Override
-                public ProxyType getType() {
-                    return ProxyType.fromPatchOption(proxyType);
-                }
-
                 @Override
                 public String getHost() {
                     return proxyHost;
@@ -64,7 +59,6 @@ public final class YouTubeMusicProxyPatch {
             Log.i(
                     TAG,
                     "Proxy setup " + (applied ? "applied" : "skipped")
-                            + " type=" + ProxyType.fromPatchOption(proxyType)
                             + " host=" + proxyHost
                             + " port=" + proxyPort
                             + " auth=" + hasProxyAuth(proxyUsername, proxyPassword)
@@ -77,6 +71,40 @@ public final class YouTubeMusicProxyPatch {
 
     public static boolean disableQuic(boolean original) {
         return false;
+    }
+
+    public static boolean enableMediaProxyResolver(boolean original) {
+        ProxyInstaller.Snapshot snapshot = ProxyInstaller.getSnapshot();
+        if (snapshot == null) {
+            return original;
+        }
+
+        Log.i(TAG, "Media proxy resolver enabled for " + snapshot.getHost() + ":" + snapshot.getPort());
+        return true;
+    }
+
+    public static void applyCronetProxyOptions(Object builder) {
+        ProxyInstaller.Snapshot snapshot = ProxyInstaller.getSnapshot();
+        if (snapshot == null) {
+            return;
+        }
+
+        if (!(builder instanceof CronetEngine.Builder)) {
+            Log.i(TAG, "Cronet proxy options skipped for " + describeObject(builder));
+            return;
+        }
+
+        try {
+            ((CronetEngine.Builder) builder).setProxyOptions(CronetProxyOptionsFactory.create(snapshot));
+            Log.i(
+                    TAG,
+                    "Cronet proxy options applied host=" + snapshot.getHost()
+                            + " port=" + snapshot.getPort()
+                            + " auth=" + snapshot.hasAuthentication()
+            );
+        } catch (Throwable throwable) {
+            Log.w(TAG, "Cronet proxy options failed", throwable);
+        }
     }
 
     private static boolean hasProxyAuth(String username, String password) {
@@ -93,5 +121,9 @@ public final class YouTubeMusicProxyPatch {
 
     private static String nullToEmpty(String value) {
         return value == null ? "" : value;
+    }
+
+    private static String describeObject(Object value) {
+        return value == null ? "null" : value.getClass().getName();
     }
 }

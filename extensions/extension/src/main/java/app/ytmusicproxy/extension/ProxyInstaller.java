@@ -15,6 +15,7 @@ import java.util.Set;
 
 public final class ProxyInstaller {
     private static volatile Trace trace;
+    private static volatile Snapshot snapshot;
 
     private ProxyInstaller() {
     }
@@ -40,34 +41,33 @@ public final class ProxyInstaller {
             return false;
         }
 
-        ProxyType type = settings.getType() == null ? ProxyType.HTTP : settings.getType();
-        Proxy proxy = new Proxy(toJavaProxyType(type), InetSocketAddress.createUnresolved(host, port));
+        String username = nullToEmpty(settings.getUsername());
+        String password = nullToEmpty(settings.getPassword());
+        Proxy proxy = new Proxy(Proxy.Type.HTTP, InetSocketAddress.createUnresolved(host, port));
         ProxySelector.setDefault(new FixedProxySelector(proxy));
-        applySystemProperties(type, host, port);
-        applyAuthenticator(settings.getUsername(), settings.getPassword());
+        applySystemProperties(host, port);
+        applyAuthenticator(username, password);
+        snapshot = new Snapshot(host, port, username, password);
         return true;
+    }
+
+    public static Snapshot getSnapshot() {
+        return snapshot;
     }
 
     public static String describeState() {
         ProxySelector selector = ProxySelector.getDefault();
         return "selector=" + (selector == null ? "null" : selector.getClass().getName())
                 + ", http=" + describeHostPort("http.proxyHost", "http.proxyPort")
-                + ", https=" + describeHostPort("https.proxyHost", "https.proxyPort")
-                + ", socks=" + describeHostPort("socksProxyHost", "socksProxyPort");
+                + ", https=" + describeHostPort("https.proxyHost", "https.proxyPort");
     }
 
-    private static void applySystemProperties(ProxyType type, String host, int port) {
+    private static void applySystemProperties(String host, int port) {
         clearProxyProperties();
-
-        if (type == ProxyType.SOCKS) {
-            System.setProperty("socksProxyHost", host);
-            System.setProperty("socksProxyPort", Integer.toString(port));
-        } else {
-            System.setProperty("http.proxyHost", host);
-            System.setProperty("http.proxyPort", Integer.toString(port));
-            System.setProperty("https.proxyHost", host);
-            System.setProperty("https.proxyPort", Integer.toString(port));
-        }
+        System.setProperty("http.proxyHost", host);
+        System.setProperty("http.proxyPort", Integer.toString(port));
+        System.setProperty("https.proxyHost", host);
+        System.setProperty("https.proxyPort", Integer.toString(port));
     }
 
     private static void clearProxyProperties() {
@@ -75,8 +75,6 @@ public final class ProxyInstaller {
         System.clearProperty("http.proxyPort");
         System.clearProperty("https.proxyHost");
         System.clearProperty("https.proxyPort");
-        System.clearProperty("socksProxyHost");
-        System.clearProperty("socksProxyPort");
     }
 
     private static String describeHostPort(String hostProperty, String portProperty) {
@@ -90,9 +88,8 @@ public final class ProxyInstaller {
     }
 
     private static void applyAuthenticator(String username, String password) {
-        String proxyUsername = nullToEmpty(username);
-        String proxyPassword = nullToEmpty(password);
-        if (proxyUsername.isEmpty() && proxyPassword.isEmpty()) {
+        if (username.isEmpty() && password.isEmpty()) {
+            Authenticator.setDefault(null);
             return;
         }
 
@@ -103,13 +100,9 @@ public final class ProxyInstaller {
                     return null;
                 }
 
-                return new PasswordAuthentication(proxyUsername, proxyPassword.toCharArray());
+                return new PasswordAuthentication(username, password.toCharArray());
             }
         });
-    }
-
-    private static Proxy.Type toJavaProxyType(ProxyType type) {
-        return type == ProxyType.SOCKS ? Proxy.Type.SOCKS : Proxy.Type.HTTP;
     }
 
     private static Integer parsePort(String value) {
@@ -127,6 +120,40 @@ public final class ProxyInstaller {
 
     private static String nullToEmpty(String value) {
         return value == null ? "" : value;
+    }
+
+    public static final class Snapshot {
+        private final String host;
+        private final int port;
+        private final String username;
+        private final String password;
+
+        private Snapshot(String host, int port, String username, String password) {
+            this.host = host;
+            this.port = port;
+            this.username = username;
+            this.password = password;
+        }
+
+        public String getHost() {
+            return host;
+        }
+
+        public int getPort() {
+            return port;
+        }
+
+        public String getUsername() {
+            return username;
+        }
+
+        public String getPassword() {
+            return password;
+        }
+
+        public boolean hasAuthentication() {
+            return !username.isEmpty() || !password.isEmpty();
+        }
     }
 
     private static final class FixedProxySelector extends ProxySelector {

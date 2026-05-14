@@ -2,6 +2,24 @@ extension {
     name = "extensions/extension.mpe"
 }
 
+val cronetStubsClasses = layout.buildDirectory.dir("cronet-stubs/classes")
+
+val compileCronetStubs by tasks.registering(JavaCompile::class) {
+    source = fileTree("../cronet-stubs/src/main/java") {
+        include("**/*.java")
+    }
+    classpath = files()
+    destinationDirectory.set(cronetStubsClasses)
+    sourceCompatibility = JavaVersion.VERSION_17.toString()
+    targetCompatibility = JavaVersion.VERSION_17.toString()
+}
+
+val cronetStubsJar by tasks.registering(Jar::class) {
+    dependsOn(compileCronetStubs)
+    from(cronetStubsClasses)
+    archiveClassifier.set("cronet-stubs")
+}
+
 android {
     namespace = "app.kontsevoye.ytmusicproxy.extension"
 
@@ -9,4 +27,8 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+}
+
+dependencies {
+    compileOnly(files(cronetStubsJar.flatMap { it.archiveFile }))
 }
