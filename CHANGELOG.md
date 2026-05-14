@@ -1,3 +1,10 @@
+# [1.0.0-dev.3](https://github.com/kontsevoye/emorphe-patches/compare/v1.0.0-dev.2...v1.0.0-dev.3) (2026-05-14)
+
+
+### Bug Fixes
+
+* route YouTube Music media stack via HTTP proxy ([7189321](https://github.com/kontsevoye/emorphe-patches/commit/71893216cf1daed8e12a5f624ac1902cdce9b2d3))
+
 # [1.0.0-dev.2](https://github.com/kontsevoye/emorphe-patches/compare/v1.0.0-dev.1...v1.0.0-dev.2) (2026-05-14)
 
 

@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0-dev.2",
+  "version": "1.0.0-dev.3",
   "patches": [
     {
       "name": "YouTube Music proxy",
-      "description": "Routes YouTube Music traffic through an app-level HTTP or SOCKS proxy.",
+      "description": "Routes YouTube Music traffic through an app-level HTTP proxy.",
       "default": false,
       "dependencies": [],
       "compatiblePackages": [
@@ -29,18 +29,6 @@
       ],
       "options": [
         {
-          "key": "proxyType",
-          "title": "Proxy type",
-          "description": "Proxy protocol to use.",
-          "required": true,
-          "type": "kotlin.String",
-          "default": "SOCKS",
-          "values": {
-            "HTTP": "HTTP",
-            "SOCKS": "SOCKS"
-          }
-        },
-        {
           "key": "proxyHost",
           "title": "Proxy host",
           "description": "Proxy host or IP address.",
@@ -55,7 +43,7 @@
           "description": "Proxy port number.",
           "required": true,
           "type": "kotlin.String",
-          "default": "1080",
+          "default": "1081",
           "values": null
         },
         {
