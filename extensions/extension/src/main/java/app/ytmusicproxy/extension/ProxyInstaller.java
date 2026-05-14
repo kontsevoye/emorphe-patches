@@ -16,6 +16,8 @@ import java.util.Set;
 public final class ProxyInstaller {
     private static volatile Trace trace;
     private static volatile Snapshot snapshot;
+    private static volatile ProxySelector previousProxySelector;
+    private static volatile boolean installed;
 
     private ProxyInstaller() {
     }
@@ -44,11 +46,26 @@ public final class ProxyInstaller {
         String username = nullToEmpty(settings.getUsername());
         String password = nullToEmpty(settings.getPassword());
         Proxy proxy = new Proxy(Proxy.Type.HTTP, InetSocketAddress.createUnresolved(host, port));
+        if (!installed) {
+            previousProxySelector = ProxySelector.getDefault();
+            installed = true;
+        }
         ProxySelector.setDefault(new FixedProxySelector(proxy));
         applySystemProperties(host, port);
         applyAuthenticator(username, password);
         snapshot = new Snapshot(host, port, username, password);
         return true;
+    }
+
+    public static void reset() {
+        if (installed) {
+            ProxySelector.setDefault(previousProxySelector);
+            previousProxySelector = null;
+            installed = false;
+        }
+        clearProxyProperties();
+        Authenticator.setDefault(null);
+        snapshot = null;
     }
 
     public static Snapshot getSnapshot() {
