@@ -2,7 +2,6 @@ NIX ?= nix
 
 PROXY_TEST_CLASSES := .gradle/proxy-test-classes
 PROXY_TEST_SOURCES := \
-	extensions/extension/src/main/java/app/ytmusicproxy/extension/ProxyType.java \
 	extensions/extension/src/main/java/app/ytmusicproxy/extension/ProxySettings.java \
 	extensions/extension/src/main/java/app/ytmusicproxy/extension/ProxyInstaller.java \
 	extensions/extension/src/test/java/app/ytmusicproxy/extension/ProxyInstallerTest.java
