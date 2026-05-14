@@ -1,3 +1,10 @@
+# [1.0.0-dev.6](https://github.com/kontsevoye/emorphe-patches/compare/v1.0.0-dev.5...v1.0.0-dev.6) (2026-05-14)
+
+
+### Bug Fixes
+
+* align proxy runtime settings ([aa711a9](https://github.com/kontsevoye/emorphe-patches/commit/aa711a94284bfd65cad3c3d254ea041a7adc92fc))
+
 # [1.0.0-dev.5](https://github.com/kontsevoye/emorphe-patches/compare/v1.0.0-dev.4...v1.0.0-dev.5) (2026-05-14)
 
 
