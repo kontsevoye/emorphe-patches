@@ -1,7 +1,7 @@
 {
-  "created_at": "",
-  "description": "",
-  "download_url": "",
+  "created_at": "2026-05-14T11:09:29",
+  "description": "# 1.0.0-dev.1 (2026-05-14)\n\n\n### Features\n\n* add YouTube Music proxy patch ([#1](https://github.com/kontsevoye/emorphe-patches/issues/1)) ([78e6f77](https://github.com/kontsevoye/emorphe-patches/commit/78e6f779c920d24b06766541601ade6374555aba))",
+  "download_url": "https://github.com/kontsevoye/emorphe-patches/releases/download/v1.0.0-dev.1/patches-1.0.0-dev.1.mpp",
   "signature_download_url": "",
-  "version": ""
+  "version": "1.0.0-dev.1"
 }

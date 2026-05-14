@@ -1,4 +1,86 @@
 {
-  "version": "",
-  "patches": []
+  "version": "1.0.0-dev.1",
+  "patches": [
+    {
+      "name": "YouTube Music proxy",
+      "description": "Routes YouTube Music traffic through an app-level HTTP or SOCKS proxy.",
+      "default": false,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.google.android.apps.youtube.music",
+          "name": "YouTube Music",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#FF0000",
+          "signatures": [
+            "6a2f65ec694a6a632acdcb5080912a565f903d4b8d83f0eb8e44fbdf2660d8e1",
+            "a2a1ad7ba7f41dfca4514e2afeb90691719af6d0fdbed4b09bbf0ed897701ceb"
+          ],
+          "targets": [
+            {
+              "version": "8.47.56",
+              "isExperimental": false,
+              "minSdk": 26,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": [
+        {
+          "key": "proxyType",
+          "title": "Proxy type",
+          "description": "Proxy protocol to use.",
+          "required": true,
+          "type": "kotlin.String",
+          "default": "SOCKS",
+          "values": {
+            "HTTP": "HTTP",
+            "SOCKS": "SOCKS"
+          }
+        },
+        {
+          "key": "proxyHost",
+          "title": "Proxy host",
+          "description": "Proxy host or IP address.",
+          "required": true,
+          "type": "kotlin.String",
+          "default": "127.0.0.1",
+          "values": {
+            "Localhost": "127.0.0.1"
+          }
+        },
+        {
+          "key": "proxyPort",
+          "title": "Proxy port",
+          "description": "Proxy port number.",
+          "required": true,
+          "type": "kotlin.String",
+          "default": "1080",
+          "values": {
+            "1080": "1080"
+          }
+        },
+        {
+          "key": "proxyUsername",
+          "title": "Proxy username",
+          "description": "Optional proxy authentication username.",
+          "required": false,
+          "type": "kotlin.String",
+          "default": "",
+          "values": null
+        },
+        {
+          "key": "proxyPassword",
+          "title": "Proxy password",
+          "description": "Optional proxy authentication password.",
+          "required": false,
+          "type": "kotlin.String",
+          "default": "",
+          "values": null
+        }
+      ]
+    }
+  ]
 }

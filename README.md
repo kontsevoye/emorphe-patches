@@ -18,8 +18,21 @@ The patch is intended for YouTube Music `8.47.56`.
 ## Patches List
 
 <!-- PATCHES_START EXPANDED -->
+> **[v1.0.0-dev.1](https://github.com/kontsevoye/emorphe-patches/releases/tag/v1.0.0-dev.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`&nbsp;&nbsp;•&nbsp;&nbsp;1 patches total
+<details open>
+<summary>📦 YouTube Music&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
 
-The generated patch list will be inserted here by the release workflow.
+**🎯 Supported versions:**
+
+| 8.47.56 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [YouTube Music proxy](#youtube-music-proxy) | Routes YouTube Music traffic through an app-level HTTP or SOCKS proxy. | • Proxy type<br>• Proxy host<br>• Proxy port<br>• Proxy username<br>• Proxy password |
+
+</details>
 
 <!-- PATCHES_END -->
 
