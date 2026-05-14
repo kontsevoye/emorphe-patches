@@ -1,3 +1,10 @@
+# [1.0.0-dev.8](https://github.com/kontsevoye/emorphe-patches/compare/v1.0.0-dev.7...v1.0.0-dev.8) (2026-05-14)
+
+
+### Bug Fixes
+
+* use self-contained proxy text preferences ([5c815d4](https://github.com/kontsevoye/emorphe-patches/commit/5c815d4281ec684e0286bcee597b142c8887326d))
+
 # [1.0.0-dev.7](https://github.com/kontsevoye/emorphe-patches/compare/v1.0.0-dev.6...v1.0.0-dev.7) (2026-05-14)
 
 
