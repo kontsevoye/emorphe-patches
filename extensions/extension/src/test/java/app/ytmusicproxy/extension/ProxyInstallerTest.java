@@ -13,6 +13,9 @@ public class ProxyInstallerTest {
         testHttpProxySetsHttpAndHttpsProperties();
         testCredentialsInstallProxyAuthenticator();
         testSnapshotCapturesAppliedProxy();
+        testResetClearsProxyAndRestoresPreviousSelector();
+        testProxyConfigDefaultsToEnabledLocalHttpProxy();
+        testProxyConfigRejectsDisabledOrInvalidValues();
         System.out.println("ProxyInstallerTest PASS");
     }
 
@@ -73,6 +76,48 @@ public class ProxyInstallerTest {
         assertEquals(true, snapshot.hasAuthentication(), "snapshot should capture auth");
     }
 
+    private static void testResetClearsProxyAndRestoresPreviousSelector() throws Exception {
+        resetProxyState();
+        ProxySelector originalSelector = ProxySelector.getDefault();
+
+        ProxyInstaller.apply(settings("127.0.0.1", "8080", "", ""));
+        ProxyInstaller.reset();
+
+        assertSame(originalSelector, ProxySelector.getDefault(), "reset should restore previous selector");
+        assertNull(System.getProperty("http.proxyHost"), "reset should clear http proxy host");
+        assertNull(System.getProperty("http.proxyPort"), "reset should clear http proxy port");
+        assertNull(System.getProperty("https.proxyHost"), "reset should clear https proxy host");
+        assertNull(System.getProperty("https.proxyPort"), "reset should clear https proxy port");
+        assertNull(ProxyInstaller.getSnapshot(), "reset should clear installed snapshot");
+    }
+
+    private static void testProxyConfigDefaultsToEnabledLocalHttpProxy() {
+        ProxyConfig config = ProxyConfig.defaults();
+
+        assertEquals(true, config.isEnabled(), "default config should be enabled");
+        assertEquals("127.0.0.1", config.getHost(), "default host");
+        assertEquals("1081", config.getPort(), "default port");
+        assertEquals(true, config.isInstallable(), "default config should be installable");
+    }
+
+    private static void testProxyConfigRejectsDisabledOrInvalidValues() {
+        assertEquals(
+                false,
+                ProxyConfig.create(false, "127.0.0.1", "1081", "", "").isInstallable(),
+                "disabled config should not be installable"
+        );
+        assertEquals(
+                false,
+                ProxyConfig.create(true, " ", "1081", "", "").isInstallable(),
+                "blank host should not be installable"
+        );
+        assertEquals(
+                false,
+                ProxyConfig.create(true, "127.0.0.1", "70000", "", "").isInstallable(),
+                "invalid port should not be installable"
+        );
+    }
+
     private static ProxySettings settings(
             String host,
             String port,
@@ -103,6 +148,7 @@ public class ProxyInstallerTest {
     }
 
     private static void resetProxyState() {
+        ProxyInstaller.reset();
         System.clearProperty("http.proxyHost");
         System.clearProperty("http.proxyPort");
         System.clearProperty("https.proxyHost");

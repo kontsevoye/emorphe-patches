@@ -1,5 +1,7 @@
 package app.ytmusicproxy.extension;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.util.Log;
 
 import java.io.IOException;
@@ -11,62 +13,78 @@ import org.chromium.net.CronetEngine;
 @SuppressWarnings("unused")
 public final class YouTubeMusicProxyPatch {
     private static final String TAG = "YTMProxyPatch";
+    private static volatile boolean traceInstalled;
+    private static volatile boolean settingsListenerRegistered;
+    private static volatile SharedPreferences.OnSharedPreferenceChangeListener settingsListener;
 
     private YouTubeMusicProxyPatch() {
     }
 
-    public static void apply(
-            String proxyHost,
-            String proxyPort,
-            String proxyUsername,
-            String proxyPassword
-    ) {
+    public static void initialize(Context context) {
         try {
-            ProxyInstaller.setTrace(new ProxyInstaller.Trace() {
-                @Override
-                public void onSelect(URI uri, Proxy proxy) {
-                    Log.i(TAG, "ProxySelector.select " + describeUri(uri) + " -> " + proxy);
-                }
-
-                @Override
-                public void onConnectFailed(URI uri, SocketAddress socketAddress, IOException exception) {
-                    Log.w(TAG, "Proxy connect failed for " + describeUri(uri) + " via " + socketAddress, exception);
-                }
-            });
-
-            boolean applied = ProxyInstaller.apply(new ProxySettings() {
-                @Override
-                public String getHost() {
-                    return proxyHost;
-                }
-
-                @Override
-                public String getPort() {
-                    return proxyPort;
-                }
-
-                @Override
-                public String getUsername() {
-                    return proxyUsername;
-                }
-
-                @Override
-                public String getPassword() {
-                    return proxyPassword;
-                }
-            });
-
-            Log.i(
-                    TAG,
-                    "Proxy setup " + (applied ? "applied" : "skipped")
-                            + " host=" + proxyHost
-                            + " port=" + proxyPort
-                            + " auth=" + hasProxyAuth(proxyUsername, proxyPassword)
-                            + " " + ProxyInstaller.describeState()
-            );
+            Context appContext = context.getApplicationContext();
+            installTrace();
+            ProxySettingsStore.ensureDefaults(appContext);
+            registerSettingsListener(appContext);
+            reloadFromSettings(appContext);
         } catch (Exception ex) {
             Log.w(TAG, "Proxy setup failed", ex);
         }
+    }
+
+    public static void reloadFromSettings(Context context) {
+        ProxyConfig config = ProxySettingsStore.read(context);
+        if (!config.isInstallable()) {
+            ProxyInstaller.reset();
+            Log.i(TAG, "Proxy setup disabled or invalid " + ProxyInstaller.describeState());
+            return;
+        }
+
+        boolean applied = ProxyInstaller.apply(config);
+        Log.i(
+                TAG,
+                "Proxy setup " + (applied ? "applied" : "skipped")
+                        + " host=" + config.getHost()
+                        + " port=" + config.getPort()
+                        + " auth=" + hasProxyAuth(config.getUsername(), config.getPassword())
+                        + " " + ProxyInstaller.describeState()
+        );
+    }
+
+    private static void installTrace() {
+        if (traceInstalled) {
+            return;
+        }
+
+        ProxyInstaller.setTrace(new ProxyInstaller.Trace() {
+            @Override
+            public void onSelect(URI uri, Proxy proxy) {
+                Log.i(TAG, "ProxySelector.select " + describeUri(uri) + " -> " + proxy);
+            }
+
+            @Override
+            public void onConnectFailed(URI uri, SocketAddress socketAddress, IOException exception) {
+                Log.w(TAG, "Proxy connect failed for " + describeUri(uri) + " via " + socketAddress, exception);
+            }
+        });
+        traceInstalled = true;
+    }
+
+    private static void registerSettingsListener(Context appContext) {
+        if (settingsListenerRegistered) {
+            return;
+        }
+
+        settingsListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
+            @Override
+            public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+                if (ProxySettingsStore.isProxyKey(key)) {
+                    reloadFromSettings(appContext);
+                }
+            }
+        };
+        ProxySettingsStore.preferences(appContext).registerOnSharedPreferenceChangeListener(settingsListener);
+        settingsListenerRegistered = true;
     }
 
     public static boolean disableQuic(boolean original) {

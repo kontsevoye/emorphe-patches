@@ -7,15 +7,16 @@ import app.morphe.patcher.patch.ApkFileType
 import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.patch.stringOption
+import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.string
 import com.android.tools.smali.dexlib2.AccessFlags
-import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
-import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
-import com.android.tools.smali.dexlib2.util.MethodUtil
-import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 
 private const val EXTENSION_CLASS = "Lapp/ytmusicproxy/extension/YouTubeMusicProxyPatch;"
+private const val EMORPHE_SETTINGS_FRAGMENT = "app.ytmusicproxy.extension.settings.EMorphePreferenceFragment"
+private const val EMORPHE_PROXY_SETTINGS_FRAGMENT = "app.ytmusicproxy.extension.settings.EMorpheProxyPreferenceFragment"
+private const val EMORPHE_SETTINGS_KEY = "settings_header_emorphe"
+private const val EMORPHE_PROXY_SETTINGS_KEY = "emorphe_settings_proxy"
+private const val MORPHE_SETTINGS_TITLE = "@string/morphe_settings_title"
 
 private val youtubeMusicCompatibility = Compatibility(
     name = "YouTube Music",
@@ -85,98 +86,84 @@ private object MediaFetchProxyResolverFingerprint : Fingerprint(
     ),
 )
 
+private val emorpheSettingsResourcePatch = resourcePatch {
+    execute {
+        get("res/xml/emorphe_settings.xml").writeText(
+            """
+                <?xml version="1.0" encoding="utf-8"?>
+                <PreferenceScreen
+                  xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+                    <com.google.android.apps.youtube.music.settings.preference.SelectablePreference android:persistent="false" android:title="Proxy" android:key="$EMORPHE_PROXY_SETTINGS_KEY" android:fragment="$EMORPHE_PROXY_SETTINGS_FRAGMENT" android:summary="HTTP proxy used by YouTube Music" app:allowDividerAbove="false" app:allowDividerBelow="false" />
+                </PreferenceScreen>
+            """.trimIndent(),
+        )
+
+        get("res/xml/emorphe_proxy_settings.xml").writeText(
+            """
+                <?xml version="1.0" encoding="utf-8"?>
+                <PreferenceScreen
+                  xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+                    <com.google.android.apps.youtube.music.ui.preference.SwitchCompatPreference android:persistent="true" android:title="Enable proxy" android:key="emorphe_proxy_enabled" android:summaryOn="Proxy is enabled" android:summaryOff="Proxy is disabled" android:defaultValue="true" />
+                    <com.google.android.apps.youtube.music.ui.preference.CustomEditTextPreference android:persistent="true" android:title="Proxy host" android:dialogTitle="Proxy host" android:key="emorphe_proxy_host" android:defaultValue="127.0.0.1" android:dependency="emorphe_proxy_enabled" android:singleLine="true" app:useSimpleSummaryProvider="true" />
+                    <com.google.android.apps.youtube.music.ui.preference.CustomEditTextPreference android:persistent="true" android:title="Proxy port" android:dialogTitle="Proxy port" android:key="emorphe_proxy_port" android:defaultValue="1081" android:dependency="emorphe_proxy_enabled" android:inputType="number" android:singleLine="true" app:useSimpleSummaryProvider="true" />
+                    <com.google.android.apps.youtube.music.ui.preference.CustomEditTextPreference android:persistent="true" android:title="Proxy username" android:dialogTitle="Proxy username" android:key="emorphe_proxy_username" android:dependency="emorphe_proxy_enabled" android:singleLine="true" app:useSimpleSummaryProvider="true" />
+                    <com.google.android.apps.youtube.music.ui.preference.CustomEditTextPreference android:persistent="true" android:title="Proxy password" android:dialogTitle="Proxy password" android:key="emorphe_proxy_password" android:summary="Optional proxy authentication password" android:dependency="emorphe_proxy_enabled" android:inputType="textPassword" android:singleLine="true" />
+                </PreferenceScreen>
+            """.trimIndent(),
+        )
+
+        document("res/xml/settings_headers.xml").use { document ->
+            val root = document.documentElement
+            val existing = root.getElementsByTagName("*")
+            for (index in 0 until existing.length) {
+                val node = existing.item(index)
+                if (node.attributes?.getNamedItem("android:key")?.nodeValue == EMORPHE_SETTINGS_KEY) {
+                    return@use
+                }
+            }
+
+            val preference = document.createElement(
+                "com.google.android.apps.youtube.music.settings.preference.SelectablePreference"
+            )
+            preference.setAttribute("android:persistent", "false")
+            preference.setAttribute("android:title", "EMorphe")
+            preference.setAttribute("android:key", EMORPHE_SETTINGS_KEY)
+            preference.setAttribute("android:fragment", EMORPHE_SETTINGS_FRAGMENT)
+            preference.setAttribute("app:allowDividerAbove", "false")
+            preference.setAttribute("app:allowDividerBelow", "false")
+
+            val morpheNode = (0 until existing.length)
+                .map { existing.item(it) }
+                .firstOrNull { node ->
+                    node.attributes?.getNamedItem("android:title")?.nodeValue == MORPHE_SETTINGS_TITLE
+                }
+            if (morpheNode?.nextSibling != null) {
+                root.insertBefore(preference, morpheNode.nextSibling)
+            } else if (morpheNode != null) {
+                root.appendChild(preference)
+            } else {
+                root.insertBefore(preference, root.firstChild)
+            }
+        }
+    }
+}
+
 @Suppress("unused")
 val youTubeMusicProxyPatch = bytecodePatch(
     name = "YouTube Music proxy",
-    description = "Routes YouTube Music traffic through an app-level HTTP proxy.",
+    description = "Routes YouTube Music traffic through a runtime-configurable app-level HTTP proxy.",
     default = false,
 ) {
     compatibleWith(youtubeMusicCompatibility)
 
+    dependsOn(emorpheSettingsResourcePatch)
+
     extendWith("extensions/extension.mpe")
 
-    val proxyHost by stringOption(
-        key = "proxyHost",
-        default = "127.0.0.1",
-        title = "Proxy host",
-        description = "Proxy host or IP address.",
-        required = true,
-    ) {
-        !it.isNullOrBlank()
-    }
-
-    val proxyPort by stringOption(
-        key = "proxyPort",
-        default = "1081",
-        title = "Proxy port",
-        description = "Proxy port number.",
-        required = true,
-    ) {
-        it?.toIntOrNull()?.let { port -> port in 1..65535 } == true
-    }
-
-    val proxyUsername by stringOption(
-        key = "proxyUsername",
-        default = "",
-        title = "Proxy username",
-        description = "Optional proxy authentication username.",
-        required = false,
-    )
-
-    val proxyPassword by stringOption(
-        key = "proxyPassword",
-        default = "",
-        title = "Proxy password",
-        description = "Optional proxy authentication password.",
-        required = false,
-    )
-
     execute {
-        val proxyMethodName = "patch_applyYouTubeMusicProxy"
-        val applicationClass = YouTubeMusicApplicationOnCreateFingerprint.classDef
-
-        if (applicationClass.methods.none { MethodUtil.methodSignaturesMatch(
-                it,
-                ImmutableMethod(
-                    applicationClass.type,
-                    proxyMethodName,
-                    emptyList(),
-                    "V",
-                    AccessFlags.PRIVATE.value or AccessFlags.STATIC.value,
-                    null,
-                    null,
-                    null,
-                )
-            ) }) {
-            applicationClass.methods.add(
-                ImmutableMethod(
-                    applicationClass.type,
-                    proxyMethodName,
-                    emptyList(),
-                    "V",
-                    AccessFlags.PRIVATE.value or AccessFlags.STATIC.value,
-                    null,
-                    null,
-                    MutableMethodImplementation(4),
-                ).toMutable().apply {
-                    addInstructions(
-                        0,
-                        """
-                            const-string v0, "${proxyHost.smaliString()}"
-                            const-string v1, "${proxyPort.smaliString()}"
-                            const-string v2, "${proxyUsername.smaliString()}"
-                            const-string v3, "${proxyPassword.smaliString()}"
-                            invoke-static { v0, v1, v2, v3 }, $EXTENSION_CLASS->apply(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-                            return-void
-                        """
-                    )
-                }
-            )
-        }
-
         YouTubeMusicApplicationOnCreateFingerprint.method.addInstruction(
             0,
-            "invoke-static {}, ${applicationClass.type}->$proxyMethodName()V",
+            "invoke-static { p0 }, $EXTENSION_CLASS->initialize(Landroid/content/Context;)V",
         )
 
         arrayOf(
@@ -211,10 +198,3 @@ val youTubeMusicProxyPatch = bytecodePatch(
         )
     }
 }
-
-private fun String?.smaliString() = (this ?: "")
-    .replace("\\", "\\\\")
-    .replace("\"", "\\\"")
-    .replace("\n", "\\n")
-    .replace("\r", "\\r")
-    .replace("\t", "\\t")
