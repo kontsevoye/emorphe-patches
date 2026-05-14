@@ -1,3 +1,10 @@
+# [1.0.0-dev.5](https://github.com/kontsevoye/emorphe-patches/compare/v1.0.0-dev.4...v1.0.0-dev.5) (2026-05-14)
+
+
+### Bug Fixes
+
+* use nested EMorphe preference screens ([a7118a2](https://github.com/kontsevoye/emorphe-patches/commit/a7118a2f234509a0720e9a4d76c36a37a827c18a))
+
 # [1.0.0-dev.4](https://github.com/kontsevoye/emorphe-patches/compare/v1.0.0-dev.3...v1.0.0-dev.4) (2026-05-14)
 
 
