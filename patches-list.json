@@ -1,5 +1,5 @@
 {
-  "version": "1.0.0-dev.1",
+  "version": "1.0.0-dev.2",
   "patches": [
     {
       "name": "YouTube Music proxy",
@@ -47,9 +47,7 @@
           "required": true,
           "type": "kotlin.String",
           "default": "127.0.0.1",
-          "values": {
-            "Localhost": "127.0.0.1"
-          }
+          "values": null
         },
         {
           "key": "proxyPort",
@@ -58,9 +56,7 @@
           "required": true,
           "type": "kotlin.String",
           "default": "1080",
-          "values": {
-            "1080": "1080"
-          }
+          "values": null
         },
         {
           "key": "proxyUsername",
