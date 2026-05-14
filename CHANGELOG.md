@@ -1,3 +1,10 @@
+# [1.0.0-dev.4](https://github.com/kontsevoye/emorphe-patches/compare/v1.0.0-dev.3...v1.0.0-dev.4) (2026-05-14)
+
+
+### Features
+
+* add runtime proxy settings ([211820c](https://github.com/kontsevoye/emorphe-patches/commit/211820c78bdada80609f796a0a35be61a8801108))
+
 # [1.0.0-dev.3](https://github.com/kontsevoye/emorphe-patches/compare/v1.0.0-dev.2...v1.0.0-dev.3) (2026-05-14)
 
 

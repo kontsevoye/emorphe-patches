@@ -1,11 +1,13 @@
 {
-  "version": "1.0.0-dev.3",
+  "version": "1.0.0-dev.4",
   "patches": [
     {
       "name": "YouTube Music proxy",
-      "description": "Routes YouTube Music traffic through an app-level HTTP proxy.",
+      "description": "Routes YouTube Music traffic through a runtime-configurable app-level HTTP proxy.",
       "default": false,
-      "dependencies": [],
+      "dependencies": [
+        "ResourcePatch"
+      ],
       "compatiblePackages": [
         {
           "packageName": "com.google.android.apps.youtube.music",
@@ -27,44 +29,7 @@
           ]
         }
       ],
-      "options": [
-        {
-          "key": "proxyHost",
-          "title": "Proxy host",
-          "description": "Proxy host or IP address.",
-          "required": true,
-          "type": "kotlin.String",
-          "default": "127.0.0.1",
-          "values": null
-        },
-        {
-          "key": "proxyPort",
-          "title": "Proxy port",
-          "description": "Proxy port number.",
-          "required": true,
-          "type": "kotlin.String",
-          "default": "1081",
-          "values": null
-        },
-        {
-          "key": "proxyUsername",
-          "title": "Proxy username",
-          "description": "Optional proxy authentication username.",
-          "required": false,
-          "type": "kotlin.String",
-          "default": "",
-          "values": null
-        },
-        {
-          "key": "proxyPassword",
-          "title": "Proxy password",
-          "description": "Optional proxy authentication password.",
-          "required": false,
-          "type": "kotlin.String",
-          "default": "",
-          "values": null
-        }
-      ]
+      "options": []
     }
   ]
 }
